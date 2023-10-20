@@ -9,8 +9,8 @@ class BookingViewSets(viewsets.ModelViewSet):
     lookup_field = 'pk'
 
     def perform_destroy(self, instance):
-        hard = self.request.query_params.get('hard')
-        instance.delete(hard)
+        soft = self.request.query_params.get('soft')
+        instance.delete(soft)
 
 class BookingUserViewSets(viewsets.ReadOnlyModelViewSet):
     queryset = Booking.objects.all()

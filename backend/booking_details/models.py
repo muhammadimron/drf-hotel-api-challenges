@@ -13,8 +13,8 @@ class Booking(models.Model):
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True)
 
-    def delete(self, hard=False):
-        if hard:
+    def delete(self, soft=False):
+        if not soft:
             return super().delete()
         else:
             self.is_deleted = True
