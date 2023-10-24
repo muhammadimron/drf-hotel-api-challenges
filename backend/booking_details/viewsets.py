@@ -1,5 +1,6 @@
-from rest_framework import viewsets
+from rest_framework import authentication, permissions, viewsets
 from rest_framework.exceptions import ValidationError
+from backend.authentication import TokenAuthentication
 
 from .models import Booking
 from .serializers import BookingSerializer
@@ -8,6 +9,8 @@ class BookingViewSets(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
     lookup_field = 'pk'
+    authentication_classes = [authentication.SessionAuthentication, TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
     def shared_logic(self, validated_data=None):
         room_id = validated_data.get('room_id')
@@ -38,6 +41,8 @@ class BookingUserViewSets(viewsets.ReadOnlyModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
     lookup_field = 'pk'
+    authentication_classes = [authentication.SessionAuthentication, TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return Booking.objects.filter(is_deleted=False)

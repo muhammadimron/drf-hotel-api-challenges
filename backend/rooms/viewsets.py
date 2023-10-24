@@ -1,6 +1,8 @@
 from rest_framework import viewsets
+from rest_framework import authentication, permissions
 from rest_framework.exceptions import ValidationError
 
+from backend.authentication import TokenAuthentication
 from .models import Room
 from .serializers import RoomSeliazer
 
@@ -8,6 +10,8 @@ class RoomViewSets(viewsets.ModelViewSet):
     queryset = Room.objects.all()
     serializer_class = RoomSeliazer
     lookup_field = 'pk'
+    authentication_classes = [authentication.SessionAuthentication, TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
     def shared_logic(self, validated_data=None):
         floor = validated_data.get('floor')
