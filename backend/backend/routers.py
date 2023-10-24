@@ -1,11 +1,9 @@
 from rest_framework.routers import DefaultRouter
-from guests.viewsets import GuestViewSets
-from rooms.viewsets import RoomViewSets
-from booking_details.viewsets import BookingViewSets, BookingUserViewSets
+from api import viewsets
 
 router = DefaultRouter()
-router.register('rooms', RoomViewSets, basename='rooms')
-router.register('guests', GuestViewSets, basename='guests')
-router.register('bookings', BookingViewSets, basename='bookings')
-router.register('bookings-users', BookingUserViewSets, basename='bookings-users')
+router.register('rooms', viewsets.RoomViewSets, basename='rooms')
+router.register('guests', viewsets.GuestViewSets, basename='guests')
+router.register('bookings', viewsets.BookingViewSets, basename='bookings')
+router.register('bookings-users', viewsets.BookingUserViewSets, basename='bookings-users')
 urlpatterns = router.urls
