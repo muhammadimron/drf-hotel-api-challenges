@@ -9,14 +9,22 @@ class RoomViewSets(viewsets.ModelViewSet):
     serializer_class = RoomSeliazer
     lookup_field = 'pk'
 
-    def perform_create(self, serializer):
-        floor = serializer.validated_data.get('floor')
-        number = serializer.validated_data.get('number')
+    def shared_logic(self, validated_data=None):
+        floor = validated_data.get('floor')
+        number = validated_data.get('number')
         if floor:
             duplicate = Room.objects.filter(floor=floor, number=number).first()
             if duplicate:
                 raise ValidationError(f"Room number {floor} in floor {number} has existed")
-        serializer.save()
+        return validated_data
+
+    def perform_create(self, serializer):
+        validated_data = self.shared_logic(validated_data=serializer.validated_data)
+        serializer.save(**validated_data)
+
+    def perform_update(self, serializer):
+        validated_data = self.shared_logic(validated_data=serializer.validated_data)
+        serializer.save(**validated_data)
 
 room_viewsets = RoomViewSets.as_view({
     'get': 'list',
