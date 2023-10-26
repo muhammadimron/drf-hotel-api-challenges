@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-class TestRoomViewSets(APITestCase):
+class TestRoomValidators(APITestCase):
     def setUp(self):
         self.url = "/api/rooms/"
         self.author = User.objects.create_superuser(username="admin", password="123")
