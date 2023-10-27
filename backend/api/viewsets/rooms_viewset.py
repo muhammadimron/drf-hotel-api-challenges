@@ -1,6 +1,8 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework import authentication, permissions
+from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
 from api.authentication import BearerAuthentication
 from api.models import Room
@@ -29,6 +31,21 @@ class RoomViewSets(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         validated_data = self.shared_logic(validated_data=serializer.validated_data)
         serializer.save(**validated_data)
+
+    @action(methods=["GET"], detail=False)
+    def add(self, request, *args, **kwargs):
+        Room.objects.all().delete()
+        for i in range(1, 6):
+            for j in range(1, 6):
+                serializer = RoomSeliazer(data={
+                    "floor": i,
+                    "number": j
+                })
+                serializer.is_valid()
+                serializer.save()
+        return Response({
+            "success": "please hit http://127.0.0.1:8000/rooms/ to see the result.",
+        }, status=status.HTTP_200_OK)
 
 room_viewsets = RoomViewSets.as_view({
     'get': 'list',

@@ -1,8 +1,12 @@
-from rest_framework import authentication, permissions, viewsets
+from django.utils.timezone import now
+
+from rest_framework import authentication, permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
 from api.authentication import BearerAuthentication
-from api.models import Booking
+from api.models import Booking, Guest, Room
 from api.serializers import BookingSerializer
 
 class BookingViewSets(viewsets.ModelViewSet):
@@ -36,6 +40,23 @@ class BookingViewSets(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         soft = self.request.query_params.get('soft')
         instance.delete(soft)
+
+    @action(methods=["GET"], detail=False)
+    def add(self, request, *args, **kwargs):
+        Booking.objects.all().delete()
+        for i in range(1, 6):
+            room = Room.objects.filter(floor=1, number=i).first()
+            guest = Guest.objects.filter(name=f"People number {i}").first()
+            serializer = BookingSerializer(data={
+                ""
+                "room_id": room.id,
+                "guest_id": guest.id
+            })
+            serializer.is_valid()
+            serializer.save()
+        return Response({
+            "success": "please hit http://127.0.0.1:8000/bookings/ to see the result."
+        }, status=status.HTTP_200_OK)
 
 class BookingUserViewSets(viewsets.ReadOnlyModelViewSet):
     queryset = Booking.objects.all()
