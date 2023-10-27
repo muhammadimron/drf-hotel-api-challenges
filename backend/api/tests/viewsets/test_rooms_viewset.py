@@ -4,7 +4,7 @@ from rest_framework import status
 
 class TestRoomViewSets(APITestCase):
     def setUp(self):
-        self.url = "/api/rooms/"
+        self.url = "/rooms/"
         self.author = User.objects.create_superuser(username="admin", password="123")
 
     def login(self):

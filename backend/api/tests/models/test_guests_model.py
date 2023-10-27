@@ -3,8 +3,9 @@ from rest_framework.test import APITestCase
 
 class TestGuestModels(APITestCase):
     def setUp(self):
-        self.url = "/api/guests/"
+        self.url = "/guests/"
         self.author = User.objects.create_superuser(username="admin", password="123")
+        self.login()
 
     def login(self):
         self.client.force_login(user=self.author)
@@ -33,14 +34,12 @@ class TestGuestModels(APITestCase):
             self.post_data(name=f"People {i}")
 
     def test_post_guest_models(self):
-        self.login()
         response = self.post_data(name="Muhammad Imron")
         data = response.json()
         self.assertEqual(data["id"], 1)
         self.assertEqual(data["name"], "Muhammad Imron")
 
     def test_get_guest_models(self):
-        self.login()
         self.input_data()
         response = self.get_data()
         data = response.json()
@@ -49,7 +48,6 @@ class TestGuestModels(APITestCase):
             self.assertEqual(data[i-1]["name"], f"People {i}")
 
     def test_get_detail_guest_models(self):
-        self.login()
         self.input_data()
         response = self.get_detail_data(id=2)
         data = response.json()
@@ -57,7 +55,6 @@ class TestGuestModels(APITestCase):
         self.assertEqual(data["name"], "People 2")
 
     def test_put_guest_models(self):
-        self.login()
         self.input_data()
         response = self.put_data(id=3, name="Ahmad Jamaludin")
         data = response.json()
@@ -65,7 +62,6 @@ class TestGuestModels(APITestCase):
         self.assertEqual(data["name"], "Ahmad Jamaludin")
 
     def test_del_guest_models(self):
-        self.login()
         self.input_data()
         self.del_data(id=3)
         data = [item for item in self.get_data().json() if item["id"] == 3]

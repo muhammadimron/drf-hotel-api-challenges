@@ -3,8 +3,9 @@ from rest_framework.test import APITestCase
 
 class TestRoomModels(APITestCase):
     def setUp(self):
-        self.url = "/api/rooms/"
+        self.url = "/rooms/"
         self.author = User.objects.create_superuser(username="admin", password="123")
+        self.login()
 
     def login(self):
         self.client.force_login(user=self.author)
@@ -35,14 +36,12 @@ class TestRoomModels(APITestCase):
             self.post_data(floor=1, number=i)
             
     def test_post_room_models(self):
-        self.login()
         response = self.post_data(floor=1, number=1)
         self.assertEqual(response.json()["id"], 1)
         self.assertEqual(response.json()["number"], 1)
         self.assertEqual(response.json()["floor"], 1)
         
     def test_get_room_models(self):
-        self.login()
         self.input_data()
         response = self.get_data()
         data = response.json()

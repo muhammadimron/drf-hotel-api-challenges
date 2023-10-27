@@ -4,8 +4,10 @@ from rest_framework import status
 
 class TestRoomValidators(APITestCase):
     def setUp(self):
-        self.url = "/api/rooms/"
+        self.url = "/rooms/"
         self.author = User.objects.create_superuser(username="admin", password="123")
+        self.login()
+        self.input_data()
 
     def login(self):
         self.client.force_login(user=self.author)
@@ -27,9 +29,6 @@ class TestRoomValidators(APITestCase):
             self.post_data(floor=1, number=i)
 
     def test_post_validators(self):
-        self.login()
-        self.input_data()
-        
         res_existed_floor_number = self.post_data(floor=1, number=1)
         self.assertEqual(res_existed_floor_number.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(res_existed_floor_number.json()[0], "Room number 1 in floor 1 has existed")
@@ -43,9 +42,6 @@ class TestRoomValidators(APITestCase):
         self.assertEqual(res_max_number.json()["number"][0], "Room number must not exceed 50. Your input is 51")
 
     def test_put_validator(self):
-        self.login()
-        self.input_data()
-
         res_existed_floor_number = self.put_data(id=2, floor=1, number=1)
         self.assertEqual(res_existed_floor_number.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(res_existed_floor_number.json()[0], "Room number 1 in floor 1 has existed")

@@ -4,7 +4,7 @@ from rest_framework import status
 
 class TestGuestViewSets(APITestCase):
     def setUp(self):
-        self.url = "/api/guests/"
+        self.url = "/guests/"
         self.author = User.objects.create_superuser(username="admin", password="123")
 
     def login(self):

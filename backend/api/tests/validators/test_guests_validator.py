@@ -4,8 +4,10 @@ from rest_framework import status
 
 class TestGuestValidators(APITestCase):
     def setUp(self):
-        self.url = "/api/guests/"
+        self.url = "/guests/"
         self.author = User.objects.create_superuser(username="admin", password="123")
+        self.login()
+        self.input_data()
 
     def login(self):
         self.client.force_login(user=self.author)
@@ -25,15 +27,11 @@ class TestGuestValidators(APITestCase):
             self.post_data(name=f"People {i}")
 
     def test_post_validator(self):
-        self.login()
-        self.input_data()
         response = self.post_data(name="People 1")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["name"][0], "This field must be unique.")
 
     def test_put_validator(self):
-        self.login()
-        self.input_data()
         response = self.put_data(id=1, name="People 4")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["name"][0], "This field must be unique.")

@@ -19,7 +19,7 @@ class BookingViewSets(viewsets.ModelViewSet):
             duplicate_room_id = Booking.objects.filter(room_id=room_id)
             if duplicate_room_id:
                 raise ValidationError("You cannot bookings the ordered room")
-        if guest_id and method != 'PUT':
+        if guest_id:
             duplicate_guest_id = Booking.objects.filter(guest_id=guest_id)
             if duplicate_guest_id:
                 raise ValidationError("You cannot ordered more than one room")
