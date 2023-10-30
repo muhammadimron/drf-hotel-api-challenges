@@ -1,4 +1,7 @@
+import pandas as pd
+from io import BytesIO
 from django.utils.timezone import now
+from django.http import HttpResponse
 
 from rest_framework import authentication, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -57,6 +60,31 @@ class BookingViewSets(viewsets.ModelViewSet):
         return Response({
             "success": "please hit http://127.0.0.1:8000/bookings/ to see the result."
         }, status=status.HTTP_200_OK)
+
+    @action(methods=["GET"], detail=False)
+    def export(self, request, *args, **kwargs):
+        bookings = Booking.objects.all()
+        rows = []
+        for booking in bookings.values():
+            if booking["is_deleted"]:
+                continue
+            guest = Guest.objects.filter(id=booking["guest_id_id"]).values().first()
+            room = Room.objects.filter(id=booking["room_id_id"]).values().first()
+            row = {}
+            row["ID"] = booking["id"]
+            row["Guest Name"] = guest["name"]
+            row["Booking Room"] = f"Room in floor {room['floor']}, number {room['number']}"
+            row["Start Date"] = booking["start_date"].strftime("%B %d, %Y")
+            row["End Date"] = booking["end_date"].strftime("%B %d, %Y")
+            rows.append(row)
+        df = pd.DataFrame(rows)
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            status=status.HTTP_200_OK
+            )
+        response["Content-Disposition"] = 'attachment; filename="bookings_list.xlsx"'
+        df.to_excel(response, index=False),
+        return response
 
 class BookingUserViewSets(viewsets.ReadOnlyModelViewSet):
     queryset = Booking.objects.all()
