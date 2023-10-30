@@ -18,7 +18,8 @@ class GuestViewSets(viewsets.ModelViewSet):
         Guest.objects.all().delete()
         for i in range(1, 11):
             serializer = GuestSerializer(data={
-                "name": f"People number {i}"
+                "name": f"People number {i}",
+                "email": f"people{i}@gmail.com"
             })
             serializer.is_valid()
             serializer.save()

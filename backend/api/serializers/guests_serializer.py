@@ -8,8 +8,10 @@ class GuestSerializer(serializers.ModelSerializer):
         model = Guest
         fields = [
             'id',
-            'name'
+            'name',
+            'email'
         ]
 
 class GuestDetailSerializer(serializers.Serializer):
     name = serializers.CharField(read_only=True)
+    email = serializers.EmailField(read_only=True)

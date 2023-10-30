@@ -41,17 +41,16 @@ class BookingViewSets(viewsets.ModelViewSet):
         serializer.save(**validated_data)
 
     def perform_destroy(self, instance):
-        soft = self.request.query_params.get('soft')
-        instance.delete(soft)
+        hard = self.request.query_params.get('hard')
+        instance.delete(hard)
 
     @action(methods=["GET"], detail=False)
     def add(self, request, *args, **kwargs):
-        Booking.objects.all().delete()
+        Booking.objects.all().hard_delete()
         for i in range(1, 6):
             room = Room.objects.filter(floor=1, number=i).first()
             guest = Guest.objects.filter(name=f"People number {i}").first()
             serializer = BookingSerializer(data={
-                ""
                 "room_id": room.id,
                 "guest_id": guest.id
             })

@@ -51,7 +51,6 @@ class TestRoomModels(APITestCase):
             self.assertEqual(data[i-1]["floor"], 1)
 
     def test_get_detail_room_models(self):
-        self.login()
         self.input_data()
         response = self.get_data_detail(id=3)
         data = response.json()
@@ -60,7 +59,6 @@ class TestRoomModels(APITestCase):
         self.assertEqual(data["floor"], 1)
 
     def test_put_room_models(self):
-        self.login()
         self.input_data()
         response = self.put_data(id=3, floor=1, number=6)
         data = response.json()
@@ -69,7 +67,6 @@ class TestRoomModels(APITestCase):
         self.assertEqual(data["floor"], 1)
 
     def test_del_room_models(self):
-        self.login()
         self.input_data()
         self.del_data(id=3)
         data = [item for item in self.get_data().json() if item["id"] == 3]

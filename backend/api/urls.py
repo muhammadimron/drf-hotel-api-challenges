@@ -6,4 +6,5 @@ router.register(r'rooms', viewsets.RoomViewSets, basename="rooms")
 router.register(r'guests', viewsets.GuestViewSets, basename="guests")
 router.register(r'bookings', viewsets.BookingViewSets, basename="bookings")
 router.register(r'bookings-users', viewsets.BookingUserViewSets, basename="bookings-users")
+router.register(r'subcriber', viewsets.NewsletterSubscriptionViewSet, basename="subcriber")
 urlpatterns = router.urls
