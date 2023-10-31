@@ -2,6 +2,7 @@ import pandas as pd
 from io import BytesIO
 from django.utils.timezone import now
 from django.http import HttpResponse
+from django.shortcuts import render
 
 from rest_framework import authentication, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -11,6 +12,7 @@ from rest_framework.response import Response
 from api.authentication import BearerAuthentication
 from api.models import Booking, Guest, Room
 from api.serializers import BookingSerializer
+from api.utils import get_bookings_row
 
 class BookingViewSets(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
@@ -62,20 +64,7 @@ class BookingViewSets(viewsets.ModelViewSet):
 
     @action(methods=["GET"], detail=False)
     def export(self, request, *args, **kwargs):
-        bookings = Booking.objects.all()
-        rows = []
-        for booking in bookings.values():
-            if booking["is_deleted"]:
-                continue
-            guest = Guest.objects.filter(id=booking["guest_id_id"]).values().first()
-            room = Room.objects.filter(id=booking["room_id_id"]).values().first()
-            row = {}
-            row["ID"] = booking["id"]
-            row["Guest Name"] = guest["name"]
-            row["Booking Room"] = f"Room in floor {room['floor']}, number {room['number']}"
-            row["Start Date"] = booking["start_date"].strftime("%B %d, %Y")
-            row["End Date"] = booking["end_date"].strftime("%B %d, %Y")
-            rows.append(row)
+        rows = get_bookings_row()
         df = pd.DataFrame(rows)
         response = HttpResponse(
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -84,6 +73,11 @@ class BookingViewSets(viewsets.ModelViewSet):
         response["Content-Disposition"] = 'attachment; filename="bookings_list.xlsx"'
         df.to_excel(response, index=False),
         return response
+
+    @action(methods=["GET"], detail=False)
+    def template(self, request, *args, **kwargs):
+        rows = get_bookings_row()
+        return render(request, "booking_template.html", {"rows": rows})
 
 class BookingUserViewSets(viewsets.ReadOnlyModelViewSet):
     queryset = Booking.objects.all()

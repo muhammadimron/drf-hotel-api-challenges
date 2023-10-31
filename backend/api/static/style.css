@@ -1,0 +1,19 @@
+.container {
+    width: 80%;
+    margin: 1rem auto;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.bordered, tr, td, th {
+    border: 1px solid black;
+}
+
+tr, td, th {
+    padding: 5px;
+}

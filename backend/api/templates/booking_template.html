@@ -1,0 +1,40 @@
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Booking Template</title>
+    <link href="{% static 'style.css' %}" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+        <div class="card">
+            <h1 class="title">Bookings Detail</h1>
+            <table class="bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Guest Name</th>
+                        <th>Booking Room</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr>
+                        <td>{{ row.ID }}</td>
+                        <td>{{ row.GuestName }}</td>
+                        <td>{{ row.BookingRoom }}</td>
+                        <td>{{ row.StartDate }}</td>
+                        <td>{{ row.EndDate }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+  </body>
+</html>
