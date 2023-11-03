@@ -2,3 +2,4 @@ from .bookings_serializer import BookingSerializer
 from .guests_serializer import GuestSerializer, GuestDetailSerializer
 from .rooms_serializer import RoomSeliazer, RoomDetailSerializer
 from .newsletter_subscription_serializers import NewsletterSubscriptionSerializer
+from .changed_log_serializer import ChangedLogSerializer

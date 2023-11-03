@@ -7,3 +7,4 @@ class Room(models.Model):
 
     def __str__(self):
         return f'Room number {self.number} in floor {self.floor}'
+        

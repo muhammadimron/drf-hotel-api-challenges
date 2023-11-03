@@ -2,3 +2,4 @@ from .bookings_viewset import BookingViewSets, BookingUserViewSets
 from .guests_viewset import GuestViewSets
 from .rooms_viewset import RoomViewSets
 from .newsletter_subscription_viewset import NewsletterSubscriptionViewSet
+from .changed_log_viewset import ChangedLogViewSet

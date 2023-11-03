@@ -25,7 +25,7 @@ class ApiMiddleware(MiddlewareMixin):
         if ip_address not in allowed_ips:
             raise ValidationError("Access Denied. Your IP is not allowed")
         
-        # check request limit: In this case, let makes request limit into 5 per minute
+        # check request limit: In this case, lets make request limit into 5 per minute
         rate_limit = 5
         key = f"ratelimit_{ip_address}"
         count = cache.get(key)
