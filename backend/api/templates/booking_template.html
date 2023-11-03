@@ -1,12 +1,30 @@
-{% load static %}
-
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Booking Template</title>
-    <link href="{% static 'style.css' %}" rel="stylesheet">
+    <style>
+        .container {
+            width: 80%;
+            margin: 1rem auto;
+        }
+        
+        .card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .bordered, tr, td, th {
+            border: 1px solid black;
+        }
+        
+        tr, td, th {
+            padding: 5px;
+        }
+    </style>
   </head>
   <body>
     <div class="container">

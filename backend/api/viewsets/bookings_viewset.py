@@ -3,6 +3,7 @@ from io import BytesIO
 from django.utils.timezone import now
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.template.loader import render_to_string
 
 from rest_framework import authentication, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -13,6 +14,8 @@ from api.authentication import BearerAuthentication
 from api.models import Booking, Guest, Room
 from api.serializers import BookingSerializer
 from api.utils import get_bookings_row
+
+from xhtml2pdf import pisa
 
 class BookingViewSets(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
@@ -63,7 +66,7 @@ class BookingViewSets(viewsets.ModelViewSet):
         }, status=status.HTTP_200_OK)
 
     @action(methods=["GET"], detail=False)
-    def export(self, request, *args, **kwargs):
+    def export_excel(self, request, *args, **kwargs):
         rows = get_bookings_row()
         df = pd.DataFrame(rows)
         response = HttpResponse(
@@ -78,6 +81,17 @@ class BookingViewSets(viewsets.ModelViewSet):
     def template(self, request, *args, **kwargs):
         rows = get_bookings_row()
         return render(request, "booking_template.html", {"rows": rows})
+
+    # TODO eksplor buat pdf masih belum selesai, nanti selesaikan yah habis middleware sama signal
+    @action(methods=["GET"], detail=False)
+    def export_pdf(self, request, *args, **kwargs):
+        rows = get_bookings_row()
+        response = HttpResponse(content_type="application/pdf")
+        response["Content-Disposition"] = "attachment; filename='report.pdf'"
+        html = render_to_string("booking_template.html", {"rows": rows})
+        # breakpoint()
+        pisaStatus = pisa.CreatePDF(html, dest=response)
+        return response
 
 class BookingUserViewSets(viewsets.ReadOnlyModelViewSet):
     queryset = Booking.objects.all()
