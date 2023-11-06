@@ -14,7 +14,7 @@ def prev_save_handler(sender, instance, **kwargs):
     obj = sender.objects.filter(id=instance.id).values().first()
     if obj:
         changes["before"] = obj
-        if sender == Booking:
+        if isinstance(instance, Booking):
             changes["before"]["start_date"] = str(changes["before"]["start_date"])
             changes["before"]["end_date"] = str(changes["before"]["end_date"])
     else:
@@ -23,36 +23,43 @@ def prev_save_handler(sender, instance, **kwargs):
 def post_save_handler(sender, instance, created, *args, **kwargs):
     obj = sender.objects.filter(id=instance.id).values().first()
     changes["after"] = obj
-    breakpoint()
-    if sender == Booking:
+    if isinstance(instance, Booking):
         changes["after"]["start_date"] = str(changes["after"]["start_date"])
         changes["after"]["end_date"] = str(changes["after"]["end_date"])
     data = {
-        "instance": sender,
-        "action": "POST" if created else "PUT",
-        "before": changes["before"],
-        "after": changes["after"],
-        "changed": _get_changes(changes) if changes["before"] else f"created - {obj}"
+        "model": sender.__name__,
+        "model_id": obj["id"],
+        "action": "CREATE" if created else "UPDATE",
+        "changes": _get_changes(changes)
     }
     ChangedLog.objects.create(**data)
 
 def prev_delete_handler(sender, instance, *args, **kwargs):
     obj = sender.objects.filter(id=instance.id).values().first()
     changes["before"] = obj
+    changes["after"] = None
     data = {
-        "instance": sender,
+        "model": sender.__name__,
+        "model_id": obj["id"],
         "action": "DELETE",
-        "before": changes["before"],
-        "after": None,
-        "changed": f"deleted - {obj}"
+        "changes": _get_changes(changes)
     }
     ChangedLog.objects.create(**data)
 
 def _get_changes(changes):
-    res = "Changes on - "
-    for key, value in changes["before"].items():
-        if changes["before"][key] != changes["after"][key]:
-            res += f"{key}, with value from {value} into {changes['after'][key]} - "
+    res = {"before": {}, "after": {}}
+    d = changes["before"] if changes["before"] != None else changes["after"]
+    for key, value in d.items():
+        if not changes["before"]:
+            res["before"] = None
+            res["after"] = d
+        elif not changes["after"]:
+            res["before"] = d
+            res["after"] = None
+        else:
+            if changes["before"][key] != changes["after"][key]:
+                res["before"][key] = changes["before"][key]
+                res["after"][key] = changes["after"][key]
     return res
 
 for model in models_list:

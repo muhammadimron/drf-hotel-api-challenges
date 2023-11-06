@@ -82,14 +82,13 @@ class BookingViewSets(viewsets.ModelViewSet):
         rows = get_bookings_row()
         return render(request, "booking_template.html", {"rows": rows})
 
-    # TODO eksplor buat pdf masih belum selesai, nanti selesaikan yah habis middleware sama signal
     @action(methods=["GET"], detail=False)
     def export_pdf(self, request, *args, **kwargs):
         rows = get_bookings_row()
         response = HttpResponse(content_type="application/pdf")
         response["Content-Disposition"] = "attachment; filename='report.pdf'"
         html = render_to_string("booking_template.html", {"rows": rows})
-        # breakpoint()
+        breakpoint()
         pisaStatus = pisa.CreatePDF(html, dest=response)
         return response
 

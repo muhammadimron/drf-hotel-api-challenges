@@ -1,8 +1,7 @@
 from django.db import models
 
 class ChangedLog(models.Model):
-    instance = models.CharField()
+    model = models.CharField()
+    model_id = models.IntegerField(null=True)
     action = models.CharField()
-    before = models.JSONField(null=True)
-    after = models.JSONField(null=True)
-    changed = models.CharField()
+    changes = models.JSONField(null=True)
