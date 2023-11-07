@@ -1,7 +1,7 @@
 import pandas as pd
 from io import BytesIO
 from django.utils.timezone import now
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
 
@@ -13,9 +13,15 @@ from rest_framework.response import Response
 from api.authentication import BearerAuthentication
 from api.models import Booking, Guest, Room
 from api.serializers import BookingSerializer
-from api.utils import get_bookings_row
+from api.utils import get_bookings_row, get_bookings_list
 
 from xhtml2pdf import pisa
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, PageBreak, Spacer, Image
+from reportlab.lib import styles, colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus.doctemplate import Frame, PageTemplate
 
 class BookingViewSets(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
@@ -51,7 +57,7 @@ class BookingViewSets(viewsets.ModelViewSet):
 
     @action(methods=["GET"], detail=False)
     def add(self, request, *args, **kwargs):
-        Booking.objects.all().hard_delete()
+        Booking.objects.all().delete()
         for i in range(1, 6):
             room = Room.objects.filter(floor=1, number=i).first()
             guest = Guest.objects.filter(name=f"People number {i}").first()
@@ -84,12 +90,63 @@ class BookingViewSets(viewsets.ModelViewSet):
 
     @action(methods=["GET"], detail=False)
     def export_pdf(self, request, *args, **kwargs):
-        rows = get_bookings_row()
-        response = HttpResponse(content_type="application/pdf")
-        response["Content-Disposition"] = "attachment; filename='report.pdf'"
-        html = render_to_string("booking_template.html", {"rows": rows})
-        breakpoint()
-        pisaStatus = pisa.CreatePDF(html, dest=response)
+        buf = BytesIO()
+        doc = SimpleDocTemplate(buf, pagesize=letter)
+        elements = []
+
+        title_text = "Bookings List - Hotel API"
+        title_style = styles.getSampleStyleSheet()["Title"]
+        title = Paragraph(title_text, title_style)
+        
+        elements.append(title)
+        elements.append(Spacer(1, 0.5*inch))
+        
+        img = Image("./api/static/download.png")
+        elements.append(img)
+        elements.append(Spacer(1, 0.3*inch))
+
+        body_text = "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quidem atque vel placeat consequatur, nam ducimus minima, enim nemo soluta eveniet natus dolore repudiandae porro mollitia obcaecati. Debitis nisi magnam ab."
+        body_style = styles.getSampleStyleSheet()["BodyText"]
+        body_style.alignment = 4
+        body = Paragraph(body_text, body_style)
+        elements.append(body)
+        elements.append(Spacer(1, 0.5*inch))
+
+        rows = get_bookings_list()
+        table = Table(rows)
+        style = TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), (0.098, 0.462, 0.823)),
+            ("TEXTCOLOR", (0, 0), (-1, 0), (1, 1, 1)),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+            ("TOPPADDING", (0, 0), (-1, 0), 12),
+            ("GRID", (0, 0), (-1, -1), 1, (0, 0, 0)),
+        ])
+        table.setStyle(style)
+        
+        elements.append(table)
+
+        elements.append(PageBreak())
+        elements.append(title)
+        elements.append(Spacer(1, 0.5*inch))
+        elements.append(img)
+        elements.append(Spacer(1, 0.3*inch))
+        elements.append(table)
+
+        elements.append(PageBreak())
+        elements.append(title)
+        elements.append(Spacer(1, 0.5*inch))
+        elements.append(body)
+        elements.append(Spacer(1, 0.5*inch))
+        elements.append(table)
+        
+        doc.build(elements, onFirstPage=_create_header_footer, onLaterPages=_create_header_footer)
+
+        buf.seek(0)
+
+        response = FileResponse(buf, content_type="application/pdf")
+        response["Content-Disposition"] = "attachment; filename=bookings_list.pdf"
         return response
 
 class BookingUserViewSets(viewsets.ReadOnlyModelViewSet):
@@ -101,3 +158,32 @@ class BookingUserViewSets(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Booking.objects.filter(is_deleted=False)
+
+def _create_header_footer(canvas, doc):
+    canvas.saveState()
+    width, _ = letter
+    header_text = "Report Booking List - Hotel API"
+    header_style = styles.getSampleStyleSheet()["BodyText"]
+    header_style.fontName = "Helvetica-Bold"
+    header_style.fontSize = 12
+    header_style.textColor = colors.white
+    canvas.setFillColorRGB(0.098, 0.462, 0.823)
+    canvas.rect(0, 749, 620, 60, fill=True)
+    canvas.setLineWidth(1)
+    canvas.setStrokeColorRGB(0.098, 0.462, 0.823)
+    canvas.line(0, letter[1] - 0.6 * inch, letter[0], letter[1] - 0.6 *inch)
+    header = Paragraph(header_text, header_style)
+    header.wrap(width, 1*inch)
+    header.drawOn(canvas, 0.5 * inch, 10.65 * inch)
+    footer_text = f"Page {doc.page}"
+    footer_style = styles.getSampleStyleSheet()["BodyText"]
+    footer_style.textColor = colors.white
+    canvas.rect(0, 0, 620, 36, fill=True)
+    canvas.setLineWidth(1)
+    canvas.setStrokeColorRGB(0.098, 0.462, 0.823)
+    canvas.line(0.3 * inch, letter[1] - 10.5 *inch, letter[0] - 0.3 * inch, letter[1] - 10.5 *inch)
+    footer = Paragraph(footer_text, footer_style)
+    footer.wrap(width, 0.5*inch)
+    footer.drawOn(canvas, letter[0] - inch, 0.2 * inch)
+    canvas.drawImage("./api/static/pandas.png", 0.5 * inch, 10, width=60, height=20, mask="auto")
+    canvas.restoreState()

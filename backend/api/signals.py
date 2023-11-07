@@ -23,13 +23,14 @@ def prev_save_handler(sender, instance, **kwargs):
 def post_save_handler(sender, instance, created, *args, **kwargs):
     obj = sender.objects.filter(id=instance.id).values().first()
     changes["after"] = obj
-    if isinstance(instance, Booking):
+    if isinstance(instance, Booking) and obj:
         changes["after"]["start_date"] = str(changes["after"]["start_date"])
         changes["after"]["end_date"] = str(changes["after"]["end_date"])
+    
     data = {
         "model": sender.__name__,
-        "model_id": obj["id"],
-        "action": "CREATE" if created else "UPDATE",
+        "model_id": obj["id"] if obj else changes["before"]["id"],
+        "action": "CREATE" if created else "UPDATE" if not obj else "DELETE",
         "changes": _get_changes(changes)
     }
     ChangedLog.objects.create(**data)

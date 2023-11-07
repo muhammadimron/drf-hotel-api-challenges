@@ -11,9 +11,3 @@ class Booking(SoftDeleteModel):
     end_date = models.DateTimeField(auto_now_add=True)
     room_id = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True)
     guest_id = models.ForeignKey(Guest, on_delete=models.SET_NULL, null=True)
-
-    def delete(self, hard=True):
-        if not hard:
-            return super().delete()
-        else:
-            return super().hard_delete()
