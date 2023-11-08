@@ -1,5 +1,10 @@
 from api.models import Booking, Guest, Room
 
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+from collections import Counter
+
 def get_bookings_row():
     bookings = Booking.objects.all()
     rows = []
@@ -33,3 +38,19 @@ def get_bookings_list():
         row.append(booking["end_date"].strftime("%B %d, %Y"))
         rows.append(row)
     return rows
+
+def set_chart_bookings():
+    floors = sorted([item["floor"] for item in Room.objects.all().values("floor").distinct()])
+    bookings_room_in_each_floor = Counter(item["room_id__floor"] for item in Booking.objects.filter(is_deleted=False).values("room_id__floor"))
+    _render_chart_bookings(floors, [bookings_room_in_each_floor[floor] for floor in floors])    
+
+def _render_chart_bookings(categories, values):
+    sns.set(style="whitegrid")
+    plt.figure(figsize=(8,6))
+    sns.barplot(x=categories, y=values, palette="Blues_r")
+
+    plt.xlabel("Floor")
+    plt.ylabel("Booking Rooms")
+    plt.title("Booking Rooms in each Floor")
+
+    plt.savefig("./api/static/chart.png", format="png")

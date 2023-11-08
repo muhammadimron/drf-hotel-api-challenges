@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from api.authentication import BearerAuthentication
 from api.models import Booking, Guest, Room
 from api.serializers import BookingSerializer
-from api.utils import get_bookings_row, get_bookings_list
+from api.utils import get_bookings_row, get_bookings_list, set_chart_bookings
 
 from xhtml2pdf import pisa
 from reportlab.lib.pagesizes import letter
@@ -71,7 +71,7 @@ class BookingViewSets(viewsets.ModelViewSet):
             "success": "please hit http://127.0.0.1:8000/bookings/ to see the result."
         }, status=status.HTTP_200_OK)
 
-    @action(methods=["GET"], detail=False)
+    @action(methods=["GET"], detail=False, url_path="export-excel")
     def export_excel(self, request, *args, **kwargs):
         rows = get_bookings_row()
         df = pd.DataFrame(rows)
@@ -88,7 +88,7 @@ class BookingViewSets(viewsets.ModelViewSet):
         rows = get_bookings_row()
         return render(request, "booking_template.html", {"rows": rows})
 
-    @action(methods=["GET"], detail=False)
+    @action(methods=["GET"], detail=False, url_path="export-pdf")
     def export_pdf(self, request, *args, **kwargs):
         buf = BytesIO()
         doc = SimpleDocTemplate(buf, pagesize=letter)
@@ -112,6 +112,11 @@ class BookingViewSets(viewsets.ModelViewSet):
         elements.append(body)
         elements.append(Spacer(1, 0.5*inch))
 
+        set_chart_bookings()
+        chart = Image("./api/static/chart.png", width=400, height=300)
+        elements.append(chart)
+        elements.append(Spacer(1, 0.3*inch))
+
         rows = get_bookings_list()
         table = Table(rows)
         style = TableStyle([
@@ -127,19 +132,28 @@ class BookingViewSets(viewsets.ModelViewSet):
         
         elements.append(table)
 
-        elements.append(PageBreak())
-        elements.append(title)
-        elements.append(Spacer(1, 0.5*inch))
-        elements.append(img)
-        elements.append(Spacer(1, 0.3*inch))
-        elements.append(table)
-
-        elements.append(PageBreak())
-        elements.append(title)
         elements.append(Spacer(1, 0.5*inch))
         elements.append(body)
-        elements.append(Spacer(1, 0.5*inch))
-        elements.append(table)
+        elements.append(Spacer(1, 0.2*inch))
+        elements.append(body)
+
+        # elements.append(PageBreak())
+        # elements.append(title)
+        # elements.append(Spacer(1, 0.5*inch))
+        # elements.append(img)
+        # elements.append(Spacer(1, 0.3*inch))
+        # elements.append(body)
+        # elements.append(Spacer(1, 0.5*inch))
+        # elements.append(table)
+
+        # elements.append(PageBreak())
+        # elements.append(title)
+        # elements.append(Spacer(1, 0.3*inch))
+        # elements.append(chart)
+        # elements.append(Spacer(1, 0.5*inch))
+        # elements.append(body)
+        # elements.append(Spacer(1, 0.5*inch))
+        # elements.append(table)
         
         doc.build(elements, onFirstPage=_create_header_footer, onLaterPages=_create_header_footer)
 
