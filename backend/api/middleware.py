@@ -26,18 +26,18 @@ class ApiMiddleware(MiddlewareMixin):
             raise ValidationError("Access Denied. Your IP is not allowed")
         
         # check request limit: In this case, lets make request limit into 5 per minute
-        # rate_limit = 5
-        # key = f"ratelimit_{ip_address}"
-        # count = cache.get(key)
+        rate_limit = 30
+        key = f"ratelimit_{ip_address}"
+        count = cache.get(key)
 
-        # if count is None:
-        #     count = 1
-        #     cache.set(key, count, 60)
-        # else:
-        #     count += 1
-        #     cache.set(key, count, 60)
+        if count is None:
+            count = 1
+            cache.set(key, count, 60)
+        else:
+            count += 1
+            cache.set(key, count, 60)
         
-        # if count > rate_limit:
-        #     raise ValidationError("Rate limit exceeded. Try again later")
+        if count > rate_limit:
+            raise ValidationError("Rate limit exceeded. Try again later")
 
         return response

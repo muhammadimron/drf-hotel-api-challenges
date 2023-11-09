@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from api.authentication import BearerAuthentication
 from api.models import Booking, Guest, Room
 from api.serializers import BookingSerializer
-from api.utils import get_bookings_row, get_bookings_list, set_chart_bookings
+from api.utils import get_bookings_row, get_bookings_list, set_chart_bookings, set_changed_log_charts
 
 from xhtml2pdf import pisa
 from reportlab.lib.pagesizes import letter
@@ -134,33 +134,21 @@ class BookingViewSets(viewsets.ModelViewSet):
 
         elements.append(Spacer(1, 0.5*inch))
         elements.append(body)
-        elements.append(Spacer(1, 0.2*inch))
+        elements.append(Spacer(1, 0.5*inch))
+
+        set_changed_log_charts()
+        chart_log = Image("./api/static/chart_log.png", width=500, height=300)
+        elements.append(chart_log)
+
+        elements.append(Spacer(1, 0.3*inch))
         elements.append(body)
-
-        # elements.append(PageBreak())
-        # elements.append(title)
-        # elements.append(Spacer(1, 0.5*inch))
-        # elements.append(img)
-        # elements.append(Spacer(1, 0.3*inch))
-        # elements.append(body)
-        # elements.append(Spacer(1, 0.5*inch))
-        # elements.append(table)
-
-        # elements.append(PageBreak())
-        # elements.append(title)
-        # elements.append(Spacer(1, 0.3*inch))
-        # elements.append(chart)
-        # elements.append(Spacer(1, 0.5*inch))
-        # elements.append(body)
-        # elements.append(Spacer(1, 0.5*inch))
-        # elements.append(table)
         
         doc.build(elements, onFirstPage=_create_header_footer, onLaterPages=_create_header_footer)
 
         buf.seek(0)
 
         response = FileResponse(buf, content_type="application/pdf")
-        response["Content-Disposition"] = "attachment; filename=bookings_list.pdf"
+        response["Content-Disposition"] = "filename=bookings_list.pdf"
         return response
 
 class BookingUserViewSets(viewsets.ReadOnlyModelViewSet):

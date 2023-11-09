@@ -45,9 +45,10 @@ def set_chart_bookings():
     _render_chart_bookings(floors, [bookings_room_in_each_floor[floor] for floor in floors])    
 
 def _render_chart_bookings(categories, values):
+    custom_palette = ["#1976d2", "#c2614e", "#d4cf3f", "#68eb4d", "#d64deb"]
     sns.set(style="whitegrid")
     plt.figure(figsize=(8,6))
-    sns.barplot(x=categories, y=values, palette="Blues_r")
+    sns.barplot(x=categories, y=values, palette=custom_palette)
 
     plt.xlabel("Floor")
     plt.ylabel("Booking Rooms")
