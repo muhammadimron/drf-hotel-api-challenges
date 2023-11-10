@@ -9,6 +9,8 @@ from rest_framework import authentication, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+from drf_excel.renderers import XLSXRenderer
+from drf_excel.mixins import XLSXFileMixin
 
 from api.authentication import BearerAuthentication
 from api.models import Booking, Guest, Room
@@ -18,10 +20,9 @@ from api.utils import get_bookings_row, get_bookings_list, set_chart_bookings, s
 from xhtml2pdf import pisa
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, PageBreak, Spacer, Image
+from reportlab.platypus import Frame, SimpleDocTemplate, Table, TableStyle, Paragraph, PageBreak, Spacer, Image
 from reportlab.lib import styles, colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus.doctemplate import Frame, PageTemplate
 
 class BookingViewSets(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
@@ -92,6 +93,7 @@ class BookingViewSets(viewsets.ModelViewSet):
     def export_pdf(self, request, *args, **kwargs):
         buf = BytesIO()
         doc = SimpleDocTemplate(buf, pagesize=letter)
+
         elements = []
 
         title_text = "Bookings List - Hotel API"
@@ -108,13 +110,26 @@ class BookingViewSets(viewsets.ModelViewSet):
         body_text = "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quidem atque vel placeat consequatur, nam ducimus minima, enim nemo soluta eveniet natus dolore repudiandae porro mollitia obcaecati. Debitis nisi magnam ab."
         body_style = styles.getSampleStyleSheet()["BodyText"]
         body_style.alignment = 4
+        body_style.fontSize = 8
         body = Paragraph(body_text, body_style)
-        elements.append(body)
-        elements.append(Spacer(1, 0.5*inch))
+        # elements.append(body)
+        # elements.append(Spacer(1, 0.5*inch))
 
         set_chart_bookings()
-        chart = Image("./api/static/chart.png", width=400, height=300)
-        elements.append(chart)
+        chart = Image("./api/static/chart.png", width=300, height=225)
+        # elements.append(chart)
+        # elements.append(Spacer(1, 0.3*inch))
+
+        # left_content = "This is the left content"
+        # right_content = "This is the right content"
+        data = [[chart, body]]
+        table_split = Table(data, colWidths=[300, 200])
+        table_split_style = TableStyle([
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE")
+        ])
+        table_split.setStyle(table_split_style)
+        elements.append(table_split)
         elements.append(Spacer(1, 0.3*inch))
 
         rows = get_bookings_list()
@@ -160,6 +175,15 @@ class BookingUserViewSets(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Booking.objects.filter(is_deleted=False)
+
+class BookingExportXLSXViewSets(XLSXFileMixin, viewsets.ReadOnlyModelViewSet):
+    serializer_class = BookingSerializer
+    renderer_classes = [XLSXRenderer]
+    filename = "booking_report.xlsx"
+
+    def list(self, request, *args, **kwargs):
+        queryset = Booking.objects.all()
+        return Response(data=self.serializer_class(queryset, many=True).data)
 
 def _create_header_footer(canvas, doc):
     canvas.saveState()
